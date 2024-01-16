@@ -64,24 +64,61 @@ const images = [
   },
 ];
 
+const gallery = document.querySelector(".gallery");
 
-import { galleryItems } from './gallery-items';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+function listTemplate(img) {
+    return `<li class="gallery-item">
+    <a class="gallery-link" href="${img.original}">
+    <img
+        class="gallery-image"
+        src="${img.preview}"
+        data-source="${img.original}"
+        alt="${img.description}"
+    />
+    </a>
+</li>`;
+}
 
-console.log(galleryItems);
-const wraperRef = document.querySelector('.gallery');
-const linkRef = document.querySelector('.gallery__link');
-const imageRef = document.querySelector('.gallery__image');
+function addListTemplate(images) {
+    return images.map(listTemplate).join("");
+    
+}
 
-let itemOfgallery = galleryItems
-  .map(image => {
-    return `<a class="gallery__item" href="${image.original}">
-  <img class="gallery__image" src="${image.preview}" alt="${image.description}" />
-</a>`;
-  })
-  .join('');
+function render() {
+    const markup = addListTemplate(images);
+    gallery.innerHTML = markup; 
+    const galleryLinks = document.querySelectorAll(".gallery-link");
+    galleryLinks.forEach(link => {
+        link.addEventListener("click", function (e) {
+            e.preventDefault();
+        });
+    });
+}
 
-wraperRef.insertAdjacentHTML('afterbegin', itemOfgallery);
+render();
 
-let lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDelay: 250 });
+let modalOpen = false;
+
+gallery.addEventListener("click", e => {
+    if (e.target === e.currentTarget) return;
+    const previewLink = e.target.getAttribute('data-source');
+    const instance = basicLightbox.create(`
+    <img src="${previewLink}" width="1112" height="640">
+`,
+{
+    onShow: instance => {
+        modalOpen = true;
+        document.addEventListener('keydown', closeModal);
+    },
+    onClose: instance => {
+        modalOpen = false;
+        document.removeEventListener('keydown', closeModal);
+    },
+})
+    function closeModal(e) {
+        if(modalOpen && e.code === 'Escape')
+        instance.close()
+    }
+
+instance.show()
+})
